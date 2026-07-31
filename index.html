@@ -1,488 +1,83 @@
 <!DOCTYPE html>
 <html lang="it">
-
 <head>
-
 <meta charset="UTF-8">
-<meta name="viewport" content="width=1920, height=1080">
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>JØXTV Webcam Frame</title>
 
-
 <style>
-
 :root {
-
-    --frame-width: 420px;
-    --frame-height: 236px;
-
-    --position-right: 60px;
-    --position-bottom: 60px;
-
-    --radius: 18px;
-
-    --purple: #a855f7;
-    --pink: #ec4899;
-    --blue: #7c3aed;
-
+    --frame-w: 420px;
+    --frame-h: 240px;
+    --neon: #a855f7;
 }
-
 
 /* RESET */
-
-* {
-
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-
+body {
+    margin: 0;
+    padding: 0;
+    background: #111; /* VISIBILE SU GITHUB */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
 }
 
-
-/* CANVAS OBS */
-
-html, body {
-
-    width:1920px;
-    height:1080px;
-
-    overflow:hidden;
-
-    background:transparent;
-
+/* TESTO DI DEBUG */
+.test-text {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    color: white;
+    font-size: 24px;
+    font-family: Arial;
 }
 
-
-
-/* CONTENITORE */
-
+/* CONTAINER CENTRALE */
 .stage {
-
-    width:100%;
-    height:100%;
-
-    position:relative;
-
+    position: relative;
+    width: var(--frame-w);
+    height: var(--frame-h);
 }
 
-
-
-/* WEBCAM FRAME */
-
-.webcam-frame {
-
-
-    position:absolute;
-
-    width:var(--frame-width);
-    height:var(--frame-height);
-
-
-    right:var(--position-right);
-    bottom:var(--position-bottom);
-
-
-    border-radius:var(--radius);
-
-    isolation:isolate;
-
-
+/* FRAME */
+.frame {
+    width: 100%;
+    height: 100%;
+    border-radius: 20px;
+    border: 3px solid var(--neon);
+    box-shadow:
+        0 0 10px var(--neon),
+        0 0 20px var(--neon),
+        inset 0 0 10px var(--neon);
+    animation: pulse 2s infinite alternate;
 }
 
-
-
-/* BORDO NEON ANIMATO */
-
-.webcam-frame::before {
-
-
-    content:"";
-
-
-    position:absolute;
-
-    inset:0;
-
-
-    border-radius:inherit;
-
-
-    padding:4px;
-
-
-    background:
-
-    linear-gradient(
-        120deg,
-        var(--purple),
-        var(--pink),
-        var(--blue),
-        var(--purple)
-    );
-
-
-    background-size:300% 300%;
-
-
-    animation:
-
-    borderMove 6s linear infinite;
-
-
-
-    -webkit-mask:
-
-    linear-gradient(#fff 0 0) content-box,
-    linear-gradient(#fff 0 0);
-
-
-    -webkit-mask-composite:xor;
-
-    mask-composite:exclude;
-
-
-}
-
-
-
-
-/* GLOW ESTERNO */
-
-.webcam-frame::after {
-
-
-    content:"";
-
-
-    position:absolute;
-
-
-    inset:-20px;
-
-
-    border-radius:30px;
-
-
-    background:
-
-    radial-gradient(
-        circle,
-        rgba(168,85,247,.45),
-        transparent 70%
-    );
-
-
-    filter:blur(25px);
-
-
-    z-index:-1;
-
-
-    animation:
-
-    glow 3s ease-in-out infinite;
-
-
-}
-
-
-
-/* PARTE INTERNA */
-
-.inside {
-
-
-    position:absolute;
-
-
-    inset:5px;
-
-
-    border-radius:14px;
-
-
-    background:
-
-    rgba(0,0,0,.18);
-
-
-    overflow:hidden;
-
-
-}
-
-
-
-/* SCAN LINE */
-
-.inside::after {
-
-
-    content:"";
-
-
-    position:absolute;
-
-
-    width:100%;
-
-    height:3px;
-
-
-    left:-100%;
-
-
-    top:50%;
-
-
-    background:
-
-    linear-gradient(
-        90deg,
-        transparent,
-        #ffffff,
-        transparent
-    );
-
-
-    opacity:.6;
-
-
-    animation:
-
-    scan 4s linear infinite;
-
-
-}
-
-
-
-
-/* ANGOLI HUD */
-
-.corner {
-
-
-    position:absolute;
-
-
-    width:35px;
-
-    height:35px;
-
-
-    border-color:#d8b4fe;
-
-    filter:
-
-    drop-shadow(
-        0 0 10px #a855f7
-    );
-
-
-}
-
-
-
-.top-left {
-
-    top:-2px;
-    left:-2px;
-
-    border-top:3px solid;
-    border-left:3px solid;
-
-}
-
-
-
-.top-right {
-
-    top:-2px;
-    right:-2px;
-
-    border-top:3px solid;
-    border-right:3px solid;
-
-}
-
-
-
-.bottom-left {
-
-    bottom:-2px;
-    left:-2px;
-
-    border-bottom:3px solid;
-    border-left:3px solid;
-
-}
-
-
-
-.bottom-right {
-
-    bottom:-2px;
-    right:-2px;
-
-    border-bottom:3px solid;
-    border-right:3px solid;
-
-}
-
-
-
-/* PICCO INDICATORE */
-
-.status {
-
-
-    position:absolute;
-
-
-    left:20px;
-
-    bottom:15px;
-
-
-    font-family:Arial,sans-serif;
-
-
-    font-size:12px;
-
-
-    letter-spacing:3px;
-
-
-    color:#d8b4fe;
-
-
-    opacity:.8;
-
-
-}
-
-
-
-
-/* ANIMAZIONI */
-
-
-@keyframes borderMove {
-
-
-    0% {
-
-        background-position:0% 50%;
-
+/* ANIMAZIONE */
+@keyframes pulse {
+    from {
+        box-shadow:
+            0 0 5px var(--neon),
+            0 0 10px var(--neon),
+            inset 0 0 5px var(--neon);
     }
-
-
-    100% {
-
-        background-position:300% 50%;
-
+    to {
+        box-shadow:
+            0 0 15px var(--neon),
+            0 0 30px var(--neon),
+            inset 0 0 15px var(--neon);
     }
-
-
 }
-
-
-
-@keyframes glow {
-
-
-    0%,100% {
-
-        opacity:.5;
-
-        transform:scale(1);
-
-    }
-
-
-    50% {
-
-        opacity:1;
-
-        transform:scale(1.08);
-
-    }
-
-
-}
-
-
-
-@keyframes scan {
-
-
-    0% {
-
-        left:-100%;
-
-    }
-
-
-    100% {
-
-        left:100%;
-
-    }
-
-
-}
-
-
-
 </style>
 
-
 </head>
-
-
-
 <body>
 
+<div class="test-text">JØXTV WEBCAM FRAME</div>
 
 <div class="stage">
-
-
-    <div class="webcam-frame">
-
-
-        <div class="inside">
-
-
-        </div>
-
-
-
-        <div class="corner top-left"></div>
-
-        <div class="corner top-right"></div>
-
-        <div class="corner bottom-left"></div>
-
-        <div class="corner bottom-right"></div>
-
-
-
-        <div class="status">
-
-            CAM_01 // ONLINE
-
-        </div>
-
-
-    </div>
-
-
+    <div class="frame"></div>
 </div>
 
-
-
 </body>
-
-
 </html>
