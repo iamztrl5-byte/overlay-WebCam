@@ -9,27 +9,29 @@
 :root {
     --neon: #a855f7;
     --neon-soft: rgba(168, 85, 247, 0.4);
-    --bg: #050507;
 }
 
-/* BASE */
-body {
+/* RESET OVERLAY */
+html, body {
     margin: 0;
-    background: radial-gradient(circle at center, #111 0%, #000 100%);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    overflow: hidden;
 }
 
-/* STAGE */
+/* STAGE CENTRATO */
 .stage {
-    position: relative;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     width: 520px;
     height: 300px;
 }
 
-/* FRAME BASE */
+/* FRAME */
 .frame {
     position: absolute;
     width: 100%;
@@ -42,7 +44,7 @@ body {
     overflow: hidden;
 }
 
-/* GLOW PULSE */
+/* GLOW */
 .frame::after {
     content: "";
     position: absolute;
@@ -51,7 +53,7 @@ body {
     box-shadow:
         0 0 25px var(--neon),
         0 0 60px var(--neon);
-    opacity: 0.5;
+    opacity: 0.6;
     animation: pulse 2s infinite alternate;
 }
 
@@ -84,14 +86,13 @@ body {
 .bl { bottom: -5px; left: -5px; border-right: none; border-top: none; }
 .br { bottom: -5px; right: -5px; border-left: none; border-top: none; }
 
-/* LINEE DECORATIVE */
+/* LINEE EXTRA */
 .edge-line {
     position: absolute;
     background: var(--neon);
     box-shadow: 0 0 10px var(--neon);
 }
 
-/* TOP LINE */
 .top-line {
     top: -2px;
     left: 20%;
@@ -100,7 +101,6 @@ body {
     animation: widen 3s infinite;
 }
 
-/* BOTTOM LINE */
 .bottom-line {
     bottom: -2px;
     left: 25%;
@@ -109,7 +109,7 @@ body {
     animation: widen 3s infinite reverse;
 }
 
-/* BRAND */
+/* TESTI */
 .brand {
     position: absolute;
     bottom: -35px;
@@ -123,7 +123,6 @@ body {
         0 0 20px var(--neon);
 }
 
-/* LABEL */
 .label {
     position: absolute;
     top: -28px;
@@ -134,23 +133,25 @@ body {
     letter-spacing: 2px;
 }
 
+/* DEBUG VISIVO (solo per browser) */
+.debug {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    color: white;
+    font-family: Arial;
+    font-size: 14px;
+}
+
 /* ANIMAZIONI */
 @keyframes pulse {
-    from {
-        opacity: 0.3;
-    }
-    to {
-        opacity: 0.7;
-    }
+    from { opacity: 0.3; }
+    to { opacity: 0.8; }
 }
 
 @keyframes moveLines {
-    from {
-        transform: translateX(0);
-    }
-    to {
-        transform: translateX(-50%);
-    }
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
 }
 
 @keyframes widen {
@@ -158,33 +159,30 @@ body {
     50% { width: 70%; left: 15%; }
     100% { width: 30%; left: 35%; }
 }
-
 </style>
-</head>
 
+</head>
 <body>
+
+<!-- DEBUG (serve solo per capire se carica su GitHub) -->
+<div class="debug">Overlay caricato</div>
 
 <div class="stage">
 
-    <!-- LABEL -->
     <div class="label">LIVE CAM</div>
 
-    <!-- FRAME -->
     <div class="frame">
         <div class="scanlines"></div>
     </div>
 
-    <!-- ANGOLI -->
     <div class="corner tl"></div>
     <div class="corner tr"></div>
     <div class="corner bl"></div>
     <div class="corner br"></div>
 
-    <!-- LINEE -->
     <div class="edge-line top-line"></div>
     <div class="edge-line bottom-line"></div>
 
-    <!-- BRAND -->
     <div class="brand">JØXTV</div>
 
 </div>
