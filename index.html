@@ -1,351 +1,488 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="it">
+
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=1920, initial-scale=1" />
-<title>Neon Cyberpunk Webcam Overlay (CSS-only)</title>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920, height=1080">
+
+<title>JØXTV Webcam Frame</title>
+
+
 <style>
-  /* =========================
-     CONFIGURABLE VARIABLES
-     ========================= */
-  :root{
-    /* Canvas */
-    --canvas-w: 1920px;
-    --canvas-h: 1080px;
-    /* Frame size & position */
-    --frame-w: 420px;            /* outer frame width */
-    --frame-h: 236px;            /* outer height — slightly taller to allow border/ratio fine-tuning */
-    --frame-radius: 12px;
-    --frame-border: 6px;         /* thickness of neon border ring */
-    --margin-from-edge: 40px;    /* distance from bottom-right edges */
 
-    /* Colors */
-    --neon-1: #a24bff;           /* purple */
-    --neon-2: #ff3ca6;           /* magenta/pink */
-    --neon-3: #7a00ff;           /* deeper purple */
-    --glass-bg: rgba(8,6,12,0.25); /* inner glass tint */
-    --glass-border-tint: rgba(255,255,255,0.04);
+:root {
 
-    /* Glow & effects */
-    --outer-glow: 30px;          /* blur size for outer glow */
-    --glow-color: rgba(162,75,255,0.45);
-    --pulse-speed: 4s;
+    --frame-width: 420px;
+    --frame-height: 236px;
 
-    /* Animation timings */
-    --border-anim-duration: 6s;
-    --scanline-duration: 5.6s;
-    --corner-pulse-duration: 3s;
-    --scanline-height: 14px;
+    --position-right: 60px;
+    --position-bottom: 60px;
 
-    /* Misc */
-    --hud-accent-length: 26px;
-    --hud-accent-thickness: 3px;
-  }
+    --radius: 18px;
 
-  /* =========================
-     PAGE & CANVAS SETUP
-     ========================= */
-  html,body{
-    width: var(--canvas-w);
-    height: var(--canvas-h);
+    --purple: #a855f7;
+    --pink: #ec4899;
+    --blue: #7c3aed;
+
+}
+
+
+/* RESET */
+
+* {
+
     margin:0;
     padding:0;
-    background: transparent;    /* critical for OBS transparent browser source */
-    overflow: hidden;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
+    box-sizing:border-box;
 
-  /* Make overlay click-through in some setups (optional). Remove if you need to interact with it)
-     pointer-events: none ensures the overlay won't intercept clicks */
-  body > * { pointer-events: none; }
+}
 
-  /* Container sized to canvas */
-  .stage {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    box-sizing: border-box;
-  }
 
-  /* =========================
-     FRAME: structure
-     .frame = outer ring + hollow center
-     .inner = the inner content area with glass effect (semi-transparent)
-     ========================= */
-  .frame {
-    position: absolute;
-    right: var(--margin-from-edge);
-    bottom: var(--margin-from-edge);
-    width: var(--frame-w);
-    height: var(--frame-h);
-    border-radius: var(--frame-radius);
-    /* padding acts as border thickness via mask in ::before */
-    padding: var(--frame-border);
-    box-sizing: border-box;
-    /* ensure it sits above background */
-    z-index: 10;
-    isolation: isolate; /* for blend modes to behave */
-  }
+/* CANVAS OBS */
 
-  /* Animated gradient border (hollow ring): created with ::before + mask to cut center */
-  .frame::before{
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    background: linear-gradient(90deg,
-      var(--neon-1) 0%,
-      var(--neon-2) 30%,
-      var(--neon-3) 60%,
-      var(--neon-2) 85%,
-      var(--neon-1) 100%
+html, body {
+
+    width:1920px;
+    height:1080px;
+
+    overflow:hidden;
+
+    background:transparent;
+
+}
+
+
+
+/* CONTENITORE */
+
+.stage {
+
+    width:100%;
+    height:100%;
+
+    position:relative;
+
+}
+
+
+
+/* WEBCAM FRAME */
+
+.webcam-frame {
+
+
+    position:absolute;
+
+    width:var(--frame-width);
+    height:var(--frame-height);
+
+
+    right:var(--position-right);
+    bottom:var(--position-bottom);
+
+
+    border-radius:var(--radius);
+
+    isolation:isolate;
+
+
+}
+
+
+
+/* BORDO NEON ANIMATO */
+
+.webcam-frame::before {
+
+
+    content:"";
+
+
+    position:absolute;
+
+    inset:0;
+
+
+    border-radius:inherit;
+
+
+    padding:4px;
+
+
+    background:
+
+    linear-gradient(
+        120deg,
+        var(--purple),
+        var(--pink),
+        var(--blue),
+        var(--purple)
     );
-    background-size: 200% 200%;
-    animation: moveGradient var(--border-anim-duration) linear infinite;
-    /* Create a hollow center (ring) by using mask with content-box */
-    padding: var(--frame-border);
+
+
+    background-size:300% 300%;
+
+
+    animation:
+
+    borderMove 6s linear infinite;
+
+
+
     -webkit-mask:
-      linear-gradient(#fff,#fff) content-box,
-      linear-gradient(#fff,#fff);
-    -webkit-mask-composite: xor;
-            mask-composite: exclude;
-    box-shadow:
-      0 0 calc(var(--outer-glow) / 2) rgba(162,75,255,0.16),
-      0 0 calc(var(--outer-glow)) var(--glow-color);
-    /* smooth edges */
-    filter: drop-shadow(0 0 calc(var(--outer-glow) / 2) var(--glow-color));
-  }
 
-  /* subtle pulsing glow overlay to make neon feel alive */
-  .frame::after{
-    content: "";
-    position: absolute;
-    inset: -18%;
-    border-radius: calc(var(--frame-radius) * 1.5);
-    background: radial-gradient(closest-side, rgba(162,75,255,0.10), transparent 40%);
-    z-index: 0;
-    pointer-events: none;
-    animation: pulseGlow var(--pulse-speed) ease-in-out infinite;
-  }
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
 
-  /* Inner area (glass) — this is where webcam shows through (semi-transparent/blur) */
-  .inner {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    border-radius: calc(var(--frame-radius) - var(--frame-border));
-    overflow: hidden;
-    box-sizing: border-box;
-    z-index: 5;
-    /* Glass look */
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border-tint);
-    backdrop-filter: blur(6px) saturate(120%);
-    -webkit-backdrop-filter: blur(6px) saturate(120%);
-    display: block;
-  }
 
-  /* Add a faint inner rim */
-  .inner::before{
-    content: "";
-    pointer-events: none;
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.02), inset 0 -6px 24px rgba(0,0,0,0.45);
-  }
+    -webkit-mask-composite:xor;
 
-  /* =========================
-     SCANLINE: passes horizontally across the inner area
-     ========================= */
-  .scan {
-    position: absolute;
-    left: -10%;
-    width: 120%;
-    height: var(--scanline-height);
-    top: -25%;
-    transform: translateY(0);
-    z-index: 8;
-    pointer-events: none;
-    background: linear-gradient(90deg,
-      rgba(255,255,255,0) 0%,
-      rgba(255,255,255,0.06) 40%,
-      rgba(255,255,255,0.12) 50%,
-      rgba(255,255,255,0.06) 60%,
-      rgba(255,255,255,0) 100%
+    mask-composite:exclude;
+
+
+}
+
+
+
+
+/* GLOW ESTERNO */
+
+.webcam-frame::after {
+
+
+    content:"";
+
+
+    position:absolute;
+
+
+    inset:-20px;
+
+
+    border-radius:30px;
+
+
+    background:
+
+    radial-gradient(
+        circle,
+        rgba(168,85,247,.45),
+        transparent 70%
     );
-    mix-blend-mode: overlay;
-    filter: blur(1px) contrast(110%);
-    opacity: 0.6;
-    animation: scanY var(--scanline-duration) linear infinite;
-  }
 
-  /* Add tiny moving highlights for depth */
-  .scan::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(90deg, rgba(255,60,166,0.0), rgba(255,60,166,0.08), rgba(162,75,255,0.06));
-    mix-blend-mode: screen;
-    opacity: 0.85;
-  }
 
-  /* =========================
-     HUD corner accents (L-shaped) — 4 elements
-     ========================= */
-  .corner {
-    position: absolute;
-    width: calc(var(--hud-accent-length));
-    height: calc(var(--hud-accent-length));
-    z-index: 12;
-    pointer-events: none;
-    filter: drop-shadow(0 0 8px rgba(255,60,166,0.20));
-    will-change: transform, opacity;
-    opacity: 0.95;
-    animation: cornerPulse var(--corner-pulse-duration) ease-in-out infinite;
-  }
+    filter:blur(25px);
 
-  /* draw the L shape using pseudo-elements */
-  .corner::before,
-  .corner::after {
-    content: "";
-    position: absolute;
-    background: linear-gradient(90deg, var(--neon-2), var(--neon-1));
-    box-shadow: 0 0 10px rgba(162,75,255,0.6);
-    border-radius: 2px;
-  }
 
-  .corner::before { /* horizontal */
-    left: 0;
-    top: 0;
-    height: var(--hud-accent-thickness);
-    width: 100%;
-  }
-  .corner::after { /* vertical */
-    left: 0;
-    top: 0;
-    width: var(--hud-accent-thickness);
-    height: 100%;
-  }
+    z-index:-1;
 
-  /* Position corners */
-  .corner.tl { left: calc(-1 * var(--frame-border)); top: calc(-1 * var(--frame-border)); transform-origin: top left; }
-  .corner.tr { right: calc(-1 * var(--frame-border)); top: calc(-1 * var(--frame-border)); transform-origin: top right; transform: rotateY(180deg); }
-  .corner.bl { left: calc(-1 * var(--frame-border)); bottom: calc(-1 * var(--frame-border)); transform-origin: bottom left; transform: rotateX(180deg); }
-  .corner.br { right: calc(-1 * var(--frame-border)); bottom: calc(-1 * var(--frame-border)); transform-origin: bottom right; transform: rotate(180deg); }
 
-  /* Small extra accent lines (short inner ticks), created with gradients for subtle neon */
-  .corner .tick {
-    position: absolute;
-    right: -8px;
-    bottom: -6px;
-    width: 18px;
-    height: 2px;
-    background: linear-gradient(90deg, rgba(255,255,255,0.04), rgba(255,60,166,0.55));
-    filter: blur(0.6px);
-    opacity: 0.85;
-  }
+    animation:
 
-  /* =========================
-     HUD subtle indicators (optional tiny bars)
-     ========================= */
-  .hud-bar {
-    position: absolute;
-    left: 12px;
-    bottom: 10px;
-    width: 84px;
-    height: 6px;
-    border-radius: 6px;
-    background: linear-gradient(90deg, rgba(255,255,255,0.03), rgba(255,255,255,0.03));
-    box-shadow: inset 0 0 12px rgba(0,0,0,0.6);
-    z-index: 9;
-    opacity: 0.9;
-  }
+    glow 3s ease-in-out infinite;
 
-  .hud-bar::after{
-    content: "";
-    position: absolute;
-    left: 0;
-    top: 0;
-    height: 100%;
-    width: 40%;
-    border-radius: inherit;
-    background: linear-gradient(90deg, rgba(162,75,255,0.25), rgba(255,60,166,0.18));
-    box-shadow: 0 0 6px rgba(162,75,255,0.28);
-    filter: blur(0.6px);
-  }
 
-  /* =========================
-     ANIMATIONS
-     ========================= */
-  @keyframes moveGradient {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-  }
+}
 
-  @keyframes pulseGlow {
-    0% { opacity: 0.85; transform: scale(1); }
-    50% { opacity: 1; transform: scale(1.03); }
-    100% { opacity: 0.85; transform: scale(1); }
-  }
 
-  @keyframes scanY {
-    0% { transform: translateY(-30%); opacity: 0; }
-    8% { opacity: 0.6; }
-    50% { transform: translateY(110%); opacity: 0.85; }
-    92% { opacity: 0.4; }
-    100% { transform: translateY(120%); opacity: 0; }
-  }
 
-  @keyframes cornerPulse {
-    0% { opacity: 0.9; transform: scale(1); }
-    50% { opacity: 1; transform: scale(1.03); }
-    100% { opacity: 0.9; transform: scale(1); }
-  }
+/* PARTE INTERNA */
 
-  /* Smooth transform hinting */
-  .frame, .frame::before, .frame::after, .inner, .corner, .scan {
-    will-change: transform, opacity, background-position;
-  }
+.inside {
 
-  /* =========================
-     RESPONSIVE / Tweak helpers
-     (if you change --frame-w/--frame-h, adjust these)
-     ========================= */
-  /* Keep modern crispness when scaled */
-  .frame, .inner { image-rendering: auto; }
 
-  /* Ensure retina crisp glow */
-  @media (prefers-reduced-motion: reduce) {
-    .frame::before,
-    .frame::after,
-    .scan,
-    .corner { animation: none; }
-  }
+    position:absolute;
 
-  /* End CSS */
+
+    inset:5px;
+
+
+    border-radius:14px;
+
+
+    background:
+
+    rgba(0,0,0,.18);
+
+
+    overflow:hidden;
+
+
+}
+
+
+
+/* SCAN LINE */
+
+.inside::after {
+
+
+    content:"";
+
+
+    position:absolute;
+
+
+    width:100%;
+
+    height:3px;
+
+
+    left:-100%;
+
+
+    top:50%;
+
+
+    background:
+
+    linear-gradient(
+        90deg,
+        transparent,
+        #ffffff,
+        transparent
+    );
+
+
+    opacity:.6;
+
+
+    animation:
+
+    scan 4s linear infinite;
+
+
+}
+
+
+
+
+/* ANGOLI HUD */
+
+.corner {
+
+
+    position:absolute;
+
+
+    width:35px;
+
+    height:35px;
+
+
+    border-color:#d8b4fe;
+
+    filter:
+
+    drop-shadow(
+        0 0 10px #a855f7
+    );
+
+
+}
+
+
+
+.top-left {
+
+    top:-2px;
+    left:-2px;
+
+    border-top:3px solid;
+    border-left:3px solid;
+
+}
+
+
+
+.top-right {
+
+    top:-2px;
+    right:-2px;
+
+    border-top:3px solid;
+    border-right:3px solid;
+
+}
+
+
+
+.bottom-left {
+
+    bottom:-2px;
+    left:-2px;
+
+    border-bottom:3px solid;
+    border-left:3px solid;
+
+}
+
+
+
+.bottom-right {
+
+    bottom:-2px;
+    right:-2px;
+
+    border-bottom:3px solid;
+    border-right:3px solid;
+
+}
+
+
+
+/* PICCO INDICATORE */
+
+.status {
+
+
+    position:absolute;
+
+
+    left:20px;
+
+    bottom:15px;
+
+
+    font-family:Arial,sans-serif;
+
+
+    font-size:12px;
+
+
+    letter-spacing:3px;
+
+
+    color:#d8b4fe;
+
+
+    opacity:.8;
+
+
+}
+
+
+
+
+/* ANIMAZIONI */
+
+
+@keyframes borderMove {
+
+
+    0% {
+
+        background-position:0% 50%;
+
+    }
+
+
+    100% {
+
+        background-position:300% 50%;
+
+    }
+
+
+}
+
+
+
+@keyframes glow {
+
+
+    0%,100% {
+
+        opacity:.5;
+
+        transform:scale(1);
+
+    }
+
+
+    50% {
+
+        opacity:1;
+
+        transform:scale(1.08);
+
+    }
+
+
+}
+
+
+
+@keyframes scan {
+
+
+    0% {
+
+        left:-100%;
+
+    }
+
+
+    100% {
+
+        left:100%;
+
+    }
+
+
+}
+
+
+
 </style>
+
+
 </head>
+
+
+
 <body>
-  <div class="stage" aria-hidden="true">
-    <div class="frame" role="presentation">
-      <div class="inner">
-        <!-- This semi-transparent inner area sits over the webcam (so the video should be placed underneath in OBS).
-             The inner area contains the scanline and subtle HUD accents. -->
-        <div class="scan" aria-hidden="true"></div>
 
-        <!-- Optional small HUD bar (flair) -->
-        <div class="hud-bar" aria-hidden="true"></div>
-      </div>
 
-      <!-- HUD corner accents (L-shaped) -->
-      <div class="corner tl" aria-hidden="true"><span class="tick"></span></div>
-      <div class="corner tr" aria-hidden="true"><span class="tick"></span></div>
-      <div class="corner bl" aria-hidden="true"><span class="tick"></span></div>
-      <div class="corner br" aria-hidden="true"><span class="tick"></span></div>
+<div class="stage">
+
+
+    <div class="webcam-frame">
+
+
+        <div class="inside">
+
+
+        </div>
+
+
+
+        <div class="corner top-left"></div>
+
+        <div class="corner top-right"></div>
+
+        <div class="corner bottom-left"></div>
+
+        <div class="corner bottom-right"></div>
+
+
+
+        <div class="status">
+
+            CAM_01 // ONLINE
+
+        </div>
+
+
     </div>
-  </div>
+
+
+</div>
+
+
+
 </body>
+
+
 </html>
