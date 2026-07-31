@@ -3,80 +3,190 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>JØXTV Webcam Frame</title>
+<title>JØXTV Overlay</title>
 
 <style>
 :root {
-    --frame-w: 420px;
-    --frame-h: 240px;
     --neon: #a855f7;
+    --neon-soft: rgba(168, 85, 247, 0.4);
+    --bg: #050507;
 }
 
-/* RESET */
+/* BASE */
 body {
     margin: 0;
-    padding: 0;
-    background: #111; /* VISIBILE SU GITHUB */
+    background: radial-gradient(circle at center, #111 0%, #000 100%);
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
 }
 
-/* TESTO DI DEBUG */
-.test-text {
-    position: absolute;
-    top: 20px;
-    left: 20px;
-    color: white;
-    font-size: 24px;
-    font-family: Arial;
-}
-
-/* CONTAINER CENTRALE */
+/* STAGE */
 .stage {
     position: relative;
-    width: var(--frame-w);
-    height: var(--frame-h);
+    width: 520px;
+    height: 300px;
 }
 
-/* FRAME */
+/* FRAME BASE */
 .frame {
+    position: absolute;
     width: 100%;
     height: 100%;
-    border-radius: 20px;
-    border: 3px solid var(--neon);
+    border-radius: 18px;
+    border: 2px solid var(--neon-soft);
     box-shadow:
-        0 0 10px var(--neon),
-        0 0 20px var(--neon),
-        inset 0 0 10px var(--neon);
+        0 0 15px var(--neon),
+        inset 0 0 15px var(--neon-soft);
+    overflow: hidden;
+}
+
+/* GLOW PULSE */
+.frame::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 18px;
+    box-shadow:
+        0 0 25px var(--neon),
+        0 0 60px var(--neon);
+    opacity: 0.5;
     animation: pulse 2s infinite alternate;
 }
 
-/* ANIMAZIONE */
+/* LINEE SCORREVOLI */
+.scanlines {
+    position: absolute;
+    width: 200%;
+    height: 100%;
+    background: repeating-linear-gradient(
+        90deg,
+        transparent,
+        transparent 40px,
+        rgba(168,85,247,0.15) 42px
+    );
+    animation: moveLines 6s linear infinite;
+}
+
+/* ANGOLI */
+.corner {
+    position: absolute;
+    width: 70px;
+    height: 70px;
+    border: 3px solid var(--neon);
+    box-shadow: 0 0 15px var(--neon);
+}
+
+/* POSIZIONI ANGOLI */
+.tl { top: -5px; left: -5px; border-right: none; border-bottom: none; }
+.tr { top: -5px; right: -5px; border-left: none; border-bottom: none; }
+.bl { bottom: -5px; left: -5px; border-right: none; border-top: none; }
+.br { bottom: -5px; right: -5px; border-left: none; border-top: none; }
+
+/* LINEE DECORATIVE */
+.edge-line {
+    position: absolute;
+    background: var(--neon);
+    box-shadow: 0 0 10px var(--neon);
+}
+
+/* TOP LINE */
+.top-line {
+    top: -2px;
+    left: 20%;
+    width: 60%;
+    height: 2px;
+    animation: widen 3s infinite;
+}
+
+/* BOTTOM LINE */
+.bottom-line {
+    bottom: -2px;
+    left: 25%;
+    width: 50%;
+    height: 2px;
+    animation: widen 3s infinite reverse;
+}
+
+/* BRAND */
+.brand {
+    position: absolute;
+    bottom: -35px;
+    right: 0;
+    font-family: Arial, sans-serif;
+    font-size: 20px;
+    letter-spacing: 3px;
+    color: var(--neon);
+    text-shadow:
+        0 0 10px var(--neon),
+        0 0 20px var(--neon);
+}
+
+/* LABEL */
+.label {
+    position: absolute;
+    top: -28px;
+    left: 0;
+    font-family: monospace;
+    font-size: 12px;
+    color: #aaa;
+    letter-spacing: 2px;
+}
+
+/* ANIMAZIONI */
 @keyframes pulse {
     from {
-        box-shadow:
-            0 0 5px var(--neon),
-            0 0 10px var(--neon),
-            inset 0 0 5px var(--neon);
+        opacity: 0.3;
     }
     to {
-        box-shadow:
-            0 0 15px var(--neon),
-            0 0 30px var(--neon),
-            inset 0 0 15px var(--neon);
+        opacity: 0.7;
     }
 }
-</style>
 
+@keyframes moveLines {
+    from {
+        transform: translateX(0);
+    }
+    to {
+        transform: translateX(-50%);
+    }
+}
+
+@keyframes widen {
+    0% { width: 30%; left: 35%; }
+    50% { width: 70%; left: 15%; }
+    100% { width: 30%; left: 35%; }
+}
+
+</style>
 </head>
+
 <body>
 
-<div class="test-text">JØXTV WEBCAM FRAME</div>
-
 <div class="stage">
-    <div class="frame"></div>
+
+    <!-- LABEL -->
+    <div class="label">LIVE CAM</div>
+
+    <!-- FRAME -->
+    <div class="frame">
+        <div class="scanlines"></div>
+    </div>
+
+    <!-- ANGOLI -->
+    <div class="corner tl"></div>
+    <div class="corner tr"></div>
+    <div class="corner bl"></div>
+    <div class="corner br"></div>
+
+    <!-- LINEE -->
+    <div class="edge-line top-line"></div>
+    <div class="edge-line bottom-line"></div>
+
+    <!-- BRAND -->
+    <div class="brand">JØXTV</div>
+
 </div>
 
 </body>
